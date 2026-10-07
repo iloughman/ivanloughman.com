@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% if page.title %}{{ page.title }} · {% endif %}{{ site.title }}</title>
+  <meta name="description" content="{{ page.excerpt | default: site.description | strip_html | strip_newlines | truncate: 160 }}">
+  {% feed_meta %}
+  <style>
+    :root {
+      color-scheme: light dark;
+      --fg: #1a1a1a;
+      --muted: #6b6b6b;
+      --bg: #fdfdfc;
+      --rule: #e5e5e2;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root { --fg: #e8e8e6; --muted: #9a9a96; --bg: #161616; --rule: #2c2c2a; }
+    }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      padding: 0 1.5rem;
+    }
+    main { max-width: 36rem; margin: 0 auto; padding: 18vh 0 4rem; }
+    a { color: inherit; text-underline-offset: 0.2em; text-decoration-color: var(--muted); }
+    a:hover { text-decoration-color: currentColor; }
+    h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 0.5rem; }
+    h2 { font-size: 0.8rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 3rem 0 1rem; }
+    .muted, time { color: var(--muted); }
+    .intro { margin: 0; color: var(--muted); }
+    .links { margin: 1rem 0 0; display: flex; gap: 1.25rem; font-size: 0.95rem; }
+    .posts { list-style: none; margin: 0; padding: 0; }
+    .posts li { display: flex; gap: 1rem; align-items: baseline; padding: 0.35rem 0; }
+    .posts time { flex: none; width: 6.5rem; font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+    .back { display: inline-block; margin-bottom: 2rem; font-size: 0.95rem; color: var(--muted); }
+    article header { margin-bottom: 2rem; }
+    article img { max-width: 100%; }
+    article blockquote { margin: 1.5rem 0; padding-left: 1rem; border-left: 2px solid var(--rule); color: var(--muted); }
+    article pre { overflow-x: auto; padding: 1rem; border: 1px solid var(--rule); border-radius: 6px; }
+    hr { border: 0; border-top: 1px solid var(--rule); margin: 2rem 0; }
+    @media (max-width: 30rem) {
+      main { padding-top: 12vh; }
+      .posts li { flex-direction: column; gap: 0; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    {{ content }}
+  </main>
+</body>
+</html>

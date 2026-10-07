@@ -1,0 +1,19 @@
+title: Ivan Loughman
+description: Thoughts and musings.
+url: https://ivanloughman.com
+permalink: /:year/:month/:title/
+plugins:
+  - jekyll-feed
+exclude:
+  - README.md
+defaults:
+  - scope:
+      path: ""
+      type: posts
+    values:
+      layout: post
+  - scope:
+      path: ""
+      type: drafts
+    values:
+      layout: post
