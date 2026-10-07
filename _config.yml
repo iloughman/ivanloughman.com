@@ -2,8 +2,6 @@ title: Ivan Loughman
 description: Ivan Loughman
 url: https://ivanloughman.com
 permalink: /:year/:month/:title/
-plugins:
-  - jekyll-feed
 exclude:
   - README.md
 defaults:
