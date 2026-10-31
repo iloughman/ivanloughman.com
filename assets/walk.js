@@ -982,7 +982,11 @@
     if (reduced || !smoothScroll) { boyX = standX[i]; }
     setTimeout(() => stopEls[i].focus({ preventScroll: true }), reduced ? 50 : 2600);
   }
-  document.querySelector('.skip')?.addEventListener('click', (e) => { e.preventDefault(); goToStop(0, false); });
+  document.querySelector('.skip')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (stopEls.length) goToStop(0, false);
+    else { window.scrollTo(0, points[1].s); boyX = standX[0]; }   // no posts yet: straight to the lamp
+  });
 
   resize();
   layoutTrack(true);

@@ -18,7 +18,7 @@
   </script>
 </head>
 <body class="walk">
-  <a class="skip" href="#writing">Skip to writing</a>
+  <a class="skip" href="#writing">{% if site.posts.size > 0 %}Skip to writing{% else %}Skip to the end{% endif %}</a>
   {{ content }}
   <script src="{{ '/assets/walk.js' | relative_url }}" defer></script>
 </body>
