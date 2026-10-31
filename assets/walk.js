@@ -98,8 +98,11 @@
     fig = document.createElement('canvas');
     fig.width = Math.ceil(figW * dpr); fig.height = Math.ceil(figH * dpr);
     figCtx = fig.getContext('2d');
-    layoutTrack();
     placeStops();
+    const before = stops.map((s) => s.pages.length).join();
+    paginate();
+    layoutTrack(stops.map((s) => s.pages.length).join() !== before);
+    if (typeof showPages === 'function') showPages();
     needsFrame = true;
   }
 
@@ -112,10 +115,12 @@
     // Ignore small height changes (mobile URL bar) so the scroll position doesn't jump.
     if (!force && W === lastW && stableVH && Math.abs(vh - stableVH) / stableVH < 0.2) return;
     stableVH = vh; lastW = W;
-    const ppu = 0.55 * vh, dwell = 0.9 * vh;
+    const ppu = 0.55 * vh;
     points = [{ s: 0, x: START }];
     let s = 0, prev = START;
-    for (const sx of standX) {
+    for (const [i, sx] of standX.entries()) {
+      const pages = stops[i] ? stops[i].pages.length : 1;
+      const dwell = vh * (0.5 + 0.75 * pages);       // time standing at the lamp: more pages, longer stay
       s += (sx - prev) * ppu; points.push({ s, x: sx });
       s += dwell; points.push({ s, x: sx });
       prev = sx;
@@ -131,35 +136,79 @@
     }
     return points[points.length - 1].x;
   }
-  const stopScroll = (i) => points[1 + i * 2].s + 0.25 * (points[2 + i * 2].s - points[1 + i * 2].s);
+  const stopScroll = (i) => points[1 + i * 2].s + 0.02 * (points[2 + i * 2].s - points[1 + i * 2].s);
 
   /* ---------------- stops (posts) ---------------- */
-  stopEls.forEach((el) => {
+  // A post is shown beside the lamp a page at a time (as many stanzas or paragraphs as fit).
+  // While he stands in the light, scrolling on turns the page; his walk resumes after the last.
+  const stops = stopEls.map((el) => {
     el.setAttribute('tabindex', '-1');
-    const paras = el.querySelectorAll('.body > p');
-    let n = 0;
-    paras.forEach((p, pi) => {
-      if (el.classList.contains('poem')) {
-        p.innerHTML = p.innerHTML.split('\n').filter((l) => l.trim()).map((l) =>
-          `<span class="line" style="transition-delay:${(0.7 + n++ * 0.6).toFixed(2)}s">${l}</span>`).join('\n');
-      } else if (pi === 0) {
-        p.classList.add('line'); p.style.transitionDelay = `${0.7 + n++ * 0.6}s`;
+    const poem = el.classList.contains('poem');
+    const blocks = Array.from(el.querySelectorAll('.body > p, .body > blockquote, .body > ul, .body > ol, .body > pre'));
+    blocks.forEach((b) => {
+      b.classList.add('stanza');
+      if (poem && b.tagName === 'P') {
+        b.innerHTML = b.innerHTML.split('\n').filter((l) => l.trim()).map((l) => `<span class="line">${l}</span>`).join('\n');
       } else {
-        p.hidden = true;
+        b.innerHTML = `<span class="line">${b.innerHTML}</span>`;
       }
     });
-    el.style.setProperty('--last-delay', `${(0.9 + n * 0.6).toFixed(2)}s`);
+    const pager = document.createElement('p');
+    pager.className = 'pager'; pager.setAttribute('aria-hidden', 'true');
+    el.querySelector('.body').after(pager);
     const h = el.querySelector('h2'); if (h) h.style.transitionDelay = '0.15s';
+    return { el, blocks, pager, pages: [blocks.map((_, i) => i)], page: -1 };
   });
+
+  function paginate() {
+    const narrow = aspect < 0.8 || W < 704;
+    const avail = window.innerHeight * (narrow ? 0.46 : 0.5);
+    for (const s of stops) {
+      s.blocks.forEach((b) => { b.hidden = false; });
+      const hs = s.blocks.map((b) => b.getBoundingClientRect().height + parseFloat(getComputedStyle(b).marginBottom || 0));
+      s.pages = []; let cur = [], h = 0;
+      hs.forEach((bh, i) => {
+        if (cur.length && h + bh > avail) { s.pages.push(cur); cur = []; h = 0; }
+        cur.push(i); h += bh;
+      });
+      if (cur.length) s.pages.push(cur);
+      if (!s.pages.length) s.pages = [[]];
+      s.page = -1;
+    }
+  }
+
+  function showPage(s, k) {
+    if (s.page === k) return;
+    s.page = k;
+    const on = new Set(s.pages[k]);
+    s.blocks.forEach((b, i) => { b.classList.remove('on'); b.hidden = !on.has(i); });
+    let n = 0;
+    const first = k === 0 ? 0.7 : 0.2;
+    for (const i of s.pages[k]) {
+      s.blocks[i].querySelectorAll('.line').forEach((l) => { l.style.transitionDelay = `${(first + n++ * 0.42).toFixed(2)}s`; });
+    }
+    s.el.style.setProperty('--last-delay', `${(first + n * 0.42 + 0.2).toFixed(2)}s`);
+    s.el.classList.toggle('last-page', k === s.pages.length - 1);
+    s.pager.textContent = s.pages.length > 1 ? `${k + 1} / ${s.pages.length}` : '';
+    // next frame, so the newly shown lines fade in rather than appear
+    requestAnimationFrame(() => requestAnimationFrame(() => { if (s.page === k) for (const i of s.pages[k]) s.blocks[i].classList.add('on'); }));
+  }
+
+  function pageFor(i, sc) {
+    const a = points[1 + i * 2].s, b = points[2 + i * 2].s, n = stops[i].pages.length;
+    if (sc <= a) return 0;
+    return Math.min(n - 1, Math.floor(clamp((sc - a) / (b - a)) * n));
+  }
+  function showPages() { stops.forEach((s, i) => showPage(s, pageFor(i, window.scrollY))); }
 
   const boyFrac = () => (aspect < 0.8 ? 0.24 : 0.34);
   function placeStops() {
     // Text sits to the right of the lamp, in the dark above the far skyline.
     const lampScreen = boyFrac() * aspect + 0.115;
-    const x = clamp((lampScreen + 0.16) / aspect, 0.3, 0.62);
+    const x = clamp((lampScreen + 0.16) / aspect, 0.3, 0.56);
     stopEls.forEach((el) => {
       el.style.setProperty('--stop-x', `${(x * 100).toFixed(2)}%`);
-      el.style.setProperty('--stop-y', '22%');
+      el.style.setProperty('--stop-y', '18%');
     });
   }
 
@@ -761,37 +810,61 @@
 
     ctx.save();
     ctx.translate(screenX, groundPx);
-    if (facing < 0) ctx.scale(-1, 1);
+    // turning: squeeze through a sliver rather than snapping
+    ctx.scale(Math.sign(turn || 1) * Math.max(0.12, Math.abs(turn)), 1);
     ctx.drawImage(fig, -ox, -oy, figW, figH);
     ctx.restore();
   }
 
   /* ---------------- state ---------------- */
-  let boyX = START, vel = 0, phase = 0, gait = 0, run = 0, facing = 1;
-  let cam = 0, time = 0, last = performance.now();
+  let boyX = START, vel = 0, phase = 0, gait = 0, run = 0, facing = 1, turn = 1;
+  let cam = 0, lead = 0, leadVel = 0, time = 0, last = performance.now();
   let needsFrame = true, here = -1, renderedX = NaN;
   const titleCard = document.querySelector('.title-card');
   const cue = document.querySelector('.scroll-cue');
+
+  // Critically damped follow (the SmoothDamp used in games): eases in and out, never overshoots.
+  function smoothDamp(cur, target, v, smoothTime, maxSpeed, dt) {
+    const omega = 2 / smoothTime, x = omega * dt;
+    const e = 1 / (1 + x + 0.48 * x * x + 0.235 * x * x * x);
+    const maxChange = maxSpeed * smoothTime;
+    const change = clamp(cur - target, -maxChange, maxChange);
+    const t2 = cur - change;
+    const temp = (v + omega * change) * dt;
+    let nv = (v - omega * temp) * e;
+    let out = t2 + (change + temp) * e;
+    if ((target - cur > 0) === (out > target)) { out = target; nv = 0; }
+    return [out, nv];
+  }
 
   function update(dt) {
     const target = scrollToX(window.scrollY);
     if (reduced) {
       boyX = target; vel = 0;
     } else {
-      const desired = clamp((target - boyX) * 3.4, -2.4, 2.4);
-      vel = lerp(vel, desired, 1 - Math.exp(-dt * 6));
-      boyX += vel * dt;
-      if (Math.abs(target - boyX) < 0.0004 && Math.abs(vel) < 0.01) { boyX = target; vel = 0; }
+      [boyX, vel] = smoothDamp(boyX, target, vel, 0.42, 2.2, dt);
     }
     const speed = Math.abs(vel);
-    gait = lerp(gait, smooth(0.015, 0.22, speed), 1 - Math.exp(-dt * 8));
-    run = lerp(run, smooth(0.8, 1.9, speed), 1 - Math.exp(-dt * 4));
-    phase += dt * TAU * (0.95 + 0.75 * run) * gait;
-    if (vel > 0.02) facing = 1; else if (vel < -0.02) facing = -1;
+    const away = target - boyX;
 
-    const camTarget = boyX - boyFrac() * aspect + facing * 0.05 * gait;
-    // a soft follow, but never let him get more than a step or two away from his mark
-    cam = reduced ? camTarget : clamp(lerp(cam, camTarget, 1 - Math.exp(-dt * 3.5)), camTarget - 0.1, camTarget + 0.1);
+    // Gait: picks up quickly, winds down gently so the last step finishes instead of freezing.
+    const want = smooth(0.012, 0.2, speed);
+    gait = lerp(gait, want, 1 - Math.exp(-dt * (want > gait ? 9 : 3.2)));
+    run = lerp(run, smooth(0.8, 1.8, speed), 1 - Math.exp(-dt * 3));
+    const cadence = 0.85 + 0.85 * run;
+    // As he slows, keep stepping until his feet come together (sin(phase) ≈ 0).
+    const midStride = Math.abs(Math.sin(phase)) > 0.12;
+    const rate = (midStride && gait > 0.004) ? Math.max(gait, 0.4) : gait;
+    phase += dt * TAU * cadence * rate;
+    if (gait < 0.02 && !midStride) phase = Math.round(phase / Math.PI) * Math.PI;
+
+    // Face where he's going; only turn when the scroll really changes direction.
+    if (Math.abs(away) > 0.015) facing = Math.sign(away);
+    turn = reduced ? facing : clamp(turn + Math.sign(facing - turn) * dt / 0.16, -1, 1);
+
+    // Camera locked to him, with a soft look-ahead that grows when he runs.
+    if (reduced) { lead = 0; } else { [lead, leadVel] = smoothDamp(lead, clamp(vel * 0.08, -0.12, 0.12), leadVel, 0.6, 1, dt); }
+    cam = boyX - boyFrac() * aspect + lead;
 
     setPalette(clamp((boyX - START) / (END - START)));
 
@@ -812,6 +885,7 @@
       if (nowHere >= 0) stopEls[nowHere].classList.add('is-here');
       here = nowHere;
     }
+    if (here >= 0 && stops[here]) showPage(stops[here], pageFor(here, window.scrollY));
     return speed > 0.0005 || Math.abs(target - boyX) > 0.0004;
   }
 
@@ -870,7 +944,7 @@
       g.addColorStop(0, `rgba(0,0,0,${0.55 * prox})`); g.addColorStop(1, 'rgba(0,0,0,0)');
       ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, 0.05 * U, 0, TAU); ctx.fill(); ctx.restore();
     }
-    drawWalker(bxs, gpx, lampDX * facing, prox * I);
+    drawWalker(bxs, gpx, lampDX * Math.sign(turn || 1), prox * I);
     drawBirds(bxs);
 
     // grass in front of him
@@ -912,9 +986,14 @@
 
   resize();
   layoutTrack(true);
+  // Web fonts change line heights; re-measure the pages once they arrive.
+  document.fonts?.ready.then(() => { paginate(); layoutTrack(true); showPages(); });
   if (location.hash === '#writing') goToStop(0, false);
   // If the page loads part-way down (reload, back button), start him where the scroll is.
   boyX = scrollToX(window.scrollY);
   cam = boyX - boyFrac() * aspect;
+  showPages();
+  // ?debug exposes the walker's state for testing
+  if (/[?&]debug\b/.test(location.search)) window.__walk = () => ({ boyX, vel, turn, facing, gait, phase });
   requestAnimationFrame(frame);
 })();
