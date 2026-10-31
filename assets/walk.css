@@ -1,25 +1,18 @@
 /* The walk (home page).
-   Without JS: a quiet page with the title and the writing below.
-   With JS: a fixed canvas world; scrolling walks the figure; stops reveal at lamps. */
+   Without JS: the photograph, the name and any writing, as a quiet page.
+   With JS: the photo fills the screen and scrolling walks you down the path. */
 
-body.walk { min-height: 100vh; }
+body.walk { min-height: 100vh; background: #1d1a15; }
 
-.world { display: none; }
-.vignette { display: none; }
-
+.scene { display: none; }
 .title-card {
   padding-block: 18vh 2rem;
   padding-left: max(1.5rem, env(safe-area-inset-left, 0px));
   padding-right: max(1.5rem, env(safe-area-inset-right, 0px));
   max-width: 34rem; margin: 0 auto;
 }
-.title-card h1 {
-  margin: 0; font-weight: 300; font-size: clamp(2.2rem, 6vw, 3.4rem);
-  letter-spacing: -.01em; line-height: 1.1;
-}
+.title-card h1 { margin: 0; font-weight: 300; font-size: clamp(2.2rem, 6vw, 3.4rem); letter-spacing: -.01em; line-height: 1.1; }
 .scroll-cue { display: none; }
-
-
 .stops {
   max-width: 34rem; margin: 0 auto;
   padding-block: 2rem 6rem;
@@ -29,97 +22,76 @@ body.walk { min-height: 100vh; }
 .stop { margin-bottom: 4rem; }
 .stop h2 { font-weight: 300; font-size: 1.9rem; margin: 0 0 1rem; line-height: 1.15; }
 .stop h2 a { text-decoration: none; }
-.stop h2 a:hover { text-decoration: underline; text-decoration-color: color-mix(in srgb, currentColor 40%, transparent); }
 .stop .body p { margin: 0 0 1rem; }
 .stop.poem .body p { white-space: pre-line; font-style: italic; font-weight: 300; font-size: 1.3rem; line-height: 1.75; }
+.stop .byline { margin: .5rem 0 0; }
 .stop time { display: block; color: var(--muted); font-size: .9rem; }
 .track { display: none; }
 
-/* ---------- Enhanced: the world ---------- */
-.js body.walk .world {
-  display: block; position: fixed; inset: 0; width: 100%; height: 100%;
-  z-index: 0; background: #2a3034;
+/* ---------- Enhanced: the walk ---------- */
+.js body.walk .scene { display: block; position: fixed; inset: 0; z-index: 0; overflow: hidden; background: #2b2a22; }
+.js body.walk .world,
+.js body.walk .leaves { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.js body.walk .leaves { pointer-events: none; }
+/* used only if WebGL isn't available: the photo, zoomed toward the end of the path */
+.js body.walk .still {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+  object-position: var(--vp-x, 57%) var(--vp-y, 53%);
+  transform-origin: var(--vp-x, 57%) var(--vp-y, 53%);
+  transform: scale(var(--zoom, 1));
+  display: none;
 }
+.js body.walk.no-webgl .still { display: block; }
+.js body.walk.no-webgl .world { display: none; }
 .js body.walk .vignette {
-  display: block; position: fixed; inset: 0; z-index: 19; pointer-events: none;
-  background: radial-gradient(120% 95% at 50% 45%, transparent 55%, rgba(5, 6, 7, .55) 100%);
+  position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(130% 100% at 50% 50%, transparent 55%, rgba(12, 10, 8, .45) 100%);
 }
-.js body.walk .track { display: block; height: var(--track, 700vh); }
+.js body.walk .track { display: block; }
+.js body.walk .grain { opacity: .06; }
 
 .js body.walk .title-card {
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
   overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
 }
+
 .js body.walk .scroll-cue {
-  display: block; position: fixed; left: 50%; bottom: max(2.2rem, env(safe-area-inset-bottom, 0px));
+  display: block; position: fixed; z-index: 10; left: 50%; bottom: max(2.2rem, env(safe-area-inset-bottom, 0px));
   width: 1px; height: 3.2rem; margin-left: -.5px; overflow: hidden;
-  background: rgba(20, 23, 25, .18);
+  background: rgba(255, 250, 238, .25);
+  transition: opacity .8s var(--ease);
 }
 .js body.walk .scroll-cue span {
   position: absolute; left: 0; top: -40%; width: 1px; height: 40%;
-  background: rgba(20, 23, 25, .7);
+  background: rgba(255, 250, 238, .85);
   animation: cue 2.6s var(--ease) infinite;
 }
 @keyframes cue { 0% { top: -40%; } 70%, 100% { top: 100%; } }
 
-
-/* Stops float in the world, hidden until the walker arrives. */
+/* Writing appears at the end, above the light down the path. */
 .js body.walk .stops {
   position: fixed; z-index: 15; inset: 0; margin: 0; padding: 0; max-width: none;
   pointer-events: none;
 }
 .js body.walk .stop {
-  position: absolute; margin: 0;
-  left: var(--stop-x, 58%); top: var(--stop-y, 18%);
-  width: min(30rem, 40vw);
-  visibility: hidden;
-  text-shadow: 0 0 1.2rem rgba(8, 9, 10, .9), 0 0 .2rem rgba(8, 9, 10, .7);
+  position: absolute; margin: 0; left: 50%; top: 12vh; transform: translateX(-50%);
+  width: min(30rem, calc(100vw - 3rem));
+  visibility: hidden; text-align: center;
+  text-shadow: 0 0 1.4rem rgba(20, 14, 8, .9), 0 0 .25rem rgba(20, 14, 8, .7);
 }
+.js body.walk .stop + .stop { display: none; }     /* the newest post waits at the end */
 .js body.walk .stop.is-here { visibility: visible; pointer-events: auto; }
-.js body.walk .stop h2,
-.js body.walk .stop time,
-.js body.walk .stop .byline,
-.js body.walk .stop .pager,
-.js body.walk .stop .line {
-  opacity: 0; transform: translateY(.5rem);
-  transition: opacity 1.4s var(--ease), transform 1.6s var(--ease);
+.js body.walk .stop > *,
+.js body.walk .stop .body > * {
+  opacity: 0; transition: opacity 1.6s var(--ease);
 }
-/* each line fades in on its own; long lines wrap with a hanging indent */
-.js body.walk .stop .line { display: inline-block; padding-left: 1.1em; text-indent: -1.1em; }
-.js body.walk .stop .stanza { margin: 0 0 1.1rem; }
-.js body.walk .stop.is-here h2,
-.js body.walk .stop.is-here .stanza.on .line { opacity: 1; transform: none; }
-.js body.walk .stop h2 { color: var(--warm); font-size: 1rem; font-style: normal; letter-spacing: .14em; text-transform: uppercase; font-weight: 400; line-height: 1.4; margin-bottom: 1.3rem; text-wrap: balance; }
-.js body.walk .stop .body p { color: #efe7d2; }
-.js body.walk .stop.poem .body p { font-size: clamp(1.05rem, 1.35vw, 1.3rem); line-height: 1.65; }
-
-/* attribution and date close the last page */
-.js body.walk .stop .byline { margin: .4rem 0 0; color: rgba(239, 231, 210, .8); font-size: 1rem; transition-delay: var(--last-delay, 3s); }
-.js body.walk .stop time { display: block; margin-top: .3rem; color: rgba(233, 214, 163, .55); transition-delay: var(--last-delay, 3s); }
-.js body.walk .stop.is-here.last-page .byline,
-.js body.walk .stop.is-here.last-page time { opacity: 1; transform: none; }
-.js body.walk .stop:not(.last-page) .byline,
-.js body.walk .stop:not(.last-page) time { display: none; }
-
-/* page count, shown while there are more stanzas to come */
-.js body.walk .stop .pager {
-  margin: .2rem 0 0; font-size: .85rem; letter-spacing: .12em; color: rgba(233, 214, 163, .5);
-  font-variant-numeric: tabular-nums; transition-delay: .2s;
-}
-.js body.walk .stop.is-here .pager { opacity: 1; transform: none; }
-.js body.walk .stop .pager:empty { display: none; }
-
-@media (max-width: 44rem) {
-  .js body.walk .stop {
-    left: max(1.5rem, env(safe-area-inset-left, 0px)) !important;
-    right: max(1.5rem, env(safe-area-inset-right, 0px));
-    top: max(9vh, env(safe-area-inset-top, 0px)) !important;
-    width: auto;
-  }
-  .js body.walk .stop.poem .body p { font-size: 1.08rem; }
-}
+.js body.walk .stop.is-here > *,
+.js body.walk .stop.is-here .body > * { opacity: 1; }
+.js body.walk .stop h2 { color: #f6e7c4; font-size: 1rem; letter-spacing: .14em; text-transform: uppercase; font-weight: 400; margin-bottom: 1.2rem; }
+.js body.walk .stop .body p { color: #fbf3e2; }
+.js body.walk .stop .byline, .js body.walk .stop time { color: rgba(251, 243, 226, .7); }
 
 @media (prefers-reduced-motion: reduce) {
   .js body.walk .scroll-cue span { animation: none; top: 30%; }
-  .js body.walk .stop * { transition-delay: 0s !important; transform: none !important; }
+  .js body.walk .stop * { transition-delay: 0s !important; }
 }
