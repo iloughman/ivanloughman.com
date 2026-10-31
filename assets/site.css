@@ -1,0 +1,100 @@
+/* ivanloughman.com — shared styles.
+   One dark world: near-monochrome greys, one warm light, one red (reserved for the walker). */
+:root {
+  color-scheme: dark;
+  --night: #121416;      /* page ground */
+  --ink: #0b0c0d;        /* deepest silhouette */
+  --fog: #aeb3b0;        /* light fog */
+  --paper: #e4e1d8;      /* reading text, slightly warm */
+  --muted: #8b908e;      /* dates, secondary */
+  --rule: #2a2e30;
+  --warm: #e9d6a3;       /* lamplight */
+  --red: #a3302a;        /* the walker; nothing else */
+
+  --serif: "Newsreader", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --ease: cubic-bezier(.45, 0, .2, 1);
+}
+
+* { box-sizing: border-box; }
+html { background: var(--night); }
+body {
+  margin: 0;
+  background: var(--night);
+  color: var(--paper);
+  font-family: var(--serif);
+  font-optical-sizing: auto;
+  font-size: 1.125rem;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: inherit; text-underline-offset: .22em; text-decoration-thickness: 1px; text-decoration-color: color-mix(in srgb, currentColor 40%, transparent); transition: text-decoration-color .4s var(--ease), color .4s var(--ease); }
+a:hover { text-decoration-color: currentColor; }
+:focus-visible { outline: 1px solid var(--warm); outline-offset: 4px; border-radius: 2px; }
+
+.skip {
+  position: fixed; left: 1rem; top: -4rem; z-index: 50;
+  padding: .5rem .8rem; background: var(--paper); color: var(--night);
+  font-size: .9rem; text-decoration: none;
+}
+.skip:focus { top: max(1rem, env(safe-area-inset-top, 0px)); }
+
+/* Film grain: a tiny tiling noise, nudged a few pixels each frame. Also dithers gradients. */
+.grain {
+  position: fixed; inset: -50%; z-index: 20; pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 1.4 -.2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: .11;
+  mix-blend-mode: overlay;
+  animation: grain 0.9s steps(6) infinite;
+}
+@keyframes grain {
+  0% { transform: translate(0, 0); }
+  17% { transform: translate(-3%, 2%); }
+  33% { transform: translate(2%, -4%); }
+  50% { transform: translate(-4%, -1%); }
+  67% { transform: translate(3%, 3%); }
+  83% { transform: translate(-1%, 4%); }
+  100% { transform: translate(0, 0); }
+}
+
+/* ---------- Plain pages (posts, writing index) ---------- */
+body.page main {
+  position: relative;
+  max-width: 34rem;
+  margin: 0 auto;
+  padding-block: max(2rem, env(safe-area-inset-top, 0px)) 6rem;
+  padding-left: max(1.5rem, env(safe-area-inset-left, 0px));
+  padding-right: max(1.5rem, env(safe-area-inset-right, 0px));
+}
+body.page {
+  background:
+    radial-gradient(60rem 40rem at 50% -10rem, rgba(233, 214, 163, .09), transparent 70%),
+    linear-gradient(var(--night), #0e1011 70%);
+  min-height: 100vh;
+}
+.crumbs { font-size: .95rem; color: var(--muted); margin-bottom: 18vh; }
+.crumbs a { text-decoration: none; }
+.crumbs a:hover { color: var(--paper); }
+
+.post header { margin-bottom: 2.5rem; }
+.post h1, .index-title {
+  font-weight: 300; font-size: clamp(2.2rem, 6vw, 3.2rem); line-height: 1.1;
+  letter-spacing: -.01em; margin: 0 0 .6rem; text-wrap: balance;
+}
+.post time, .posts time, .muted { color: var(--muted); font-size: .95rem; }
+.post .body img { max-width: 100%; }
+.post .body blockquote { margin: 1.5rem 0; padding-left: 1rem; border-left: 1px solid var(--rule); color: var(--muted); }
+.post .body pre { overflow-x: auto; padding: 1rem; border: 1px solid var(--rule); }
+
+.poem .body p { white-space: pre-line; font-style: italic; font-weight: 300; font-size: 1.35rem; line-height: 1.75; }
+
+.index-title { margin-bottom: 2.5rem; }
+.posts { list-style: none; margin: 0; padding: 0; }
+.posts li { display: flex; gap: 1.25rem; align-items: baseline; padding: .45rem 0; border-bottom: 1px solid var(--rule); }
+.posts time { flex: none; width: 6.5rem; font-variant-numeric: tabular-nums; }
+@media (max-width: 30rem) { .posts li { flex-direction: column; gap: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .grain { animation: none; }
+  * { transition-duration: .01ms !important; }
+}

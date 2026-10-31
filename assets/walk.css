@@ -1,0 +1,124 @@
+/* The walk (home page).
+   Without JS: a quiet page with the title and the writing below.
+   With JS: a fixed canvas world; scrolling walks the figure; stops reveal at lamps. */
+
+body.walk { min-height: 100vh; }
+
+.world { display: none; }
+.vignette { display: none; }
+
+.title-card {
+  padding-block: 18vh 2rem;
+  padding-left: max(1.5rem, env(safe-area-inset-left, 0px));
+  padding-right: max(1.5rem, env(safe-area-inset-right, 0px));
+  max-width: 34rem; margin: 0 auto;
+}
+.title-card h1 {
+  margin: 0; font-weight: 300; font-size: clamp(2.2rem, 6vw, 3.4rem);
+  letter-spacing: -.01em; line-height: 1.1;
+}
+.scroll-cue { display: none; }
+
+.corner {
+  position: absolute; top: max(1.25rem, env(safe-area-inset-top, 0px));
+  right: max(1.5rem, env(safe-area-inset-right, 0px));
+  font-size: .95rem; z-index: 30;
+}
+.corner a { text-decoration: none; color: var(--muted); }
+.corner a:hover { color: var(--paper); }
+
+.stops {
+  max-width: 34rem; margin: 0 auto;
+  padding-block: 2rem 6rem;
+  padding-left: max(1.5rem, env(safe-area-inset-left, 0px));
+  padding-right: max(1.5rem, env(safe-area-inset-right, 0px));
+}
+.stop { margin-bottom: 4rem; }
+.stop h2 { font-weight: 300; font-size: 1.9rem; margin: 0 0 1rem; line-height: 1.15; }
+.stop h2 a { text-decoration: none; }
+.stop h2 a:hover { text-decoration: underline; text-decoration-color: color-mix(in srgb, currentColor 40%, transparent); }
+.stop .body p { margin: 0 0 1rem; }
+.stop.poem .body p { white-space: pre-line; font-style: italic; font-weight: 300; font-size: 1.3rem; line-height: 1.75; }
+.stop time { display: block; color: var(--muted); font-size: .9rem; }
+.track { display: none; }
+
+/* ---------- Enhanced: the world ---------- */
+.js body.walk .world {
+  display: block; position: fixed; inset: 0; width: 100%; height: 100%;
+  z-index: 0; background: #2a3034;
+}
+.js body.walk .vignette {
+  display: block; position: fixed; inset: 0; z-index: 19; pointer-events: none;
+  background: radial-gradient(120% 95% at 50% 45%, transparent 55%, rgba(5, 6, 7, .55) 100%);
+}
+.js body.walk .track { display: block; height: var(--track, 700vh); }
+
+.js body.walk .title-card {
+  position: fixed; inset: 0 auto auto 0; z-index: 10; max-width: none; margin: 0;
+  padding-top: max(12vh, env(safe-area-inset-top, 0px));
+  padding-left: max(6vw, env(safe-area-inset-left, 0px));
+  opacity: var(--intro, 1);
+  transform: translateY(calc((1 - var(--intro, 1)) * -1.5rem));
+  pointer-events: none;
+}
+.js body.walk .title-card h1 {
+  color: #1a1e21;
+  font-size: clamp(2rem, 4.6vw, 3.6rem);
+  mix-blend-mode: multiply;
+  opacity: .78;
+}
+.js body.walk .scroll-cue {
+  display: block; position: fixed; left: 50%; bottom: max(2.2rem, env(safe-area-inset-bottom, 0px));
+  width: 1px; height: 3.2rem; margin-left: -.5px; overflow: hidden;
+  background: rgba(20, 23, 25, .18);
+}
+.js body.walk .scroll-cue span {
+  position: absolute; left: 0; top: -40%; width: 1px; height: 40%;
+  background: rgba(20, 23, 25, .7);
+  animation: cue 2.6s var(--ease) infinite;
+}
+@keyframes cue { 0% { top: -40%; } 70%, 100% { top: 100%; } }
+
+.js body.walk .corner { position: fixed; }
+.js body.walk .corner a { color: rgba(228, 225, 216, .55); mix-blend-mode: difference; }
+
+/* Stops float in the world, hidden until the walker arrives. */
+.js body.walk .stops {
+  position: fixed; z-index: 15; inset: 0; margin: 0; padding: 0; max-width: none;
+  pointer-events: none;
+}
+.js body.walk .stop {
+  position: absolute; margin: 0;
+  left: var(--stop-x, 58%); top: var(--stop-y, 24%);
+  width: min(24rem, 36vw);
+  visibility: hidden;
+  text-shadow: 0 0 1.2rem rgba(8, 9, 10, .9), 0 0 .2rem rgba(8, 9, 10, .7);
+}
+.js body.walk .stop.is-here { visibility: visible; pointer-events: auto; }
+.js body.walk .stop h2,
+.js body.walk .stop time,
+.js body.walk .stop .line {
+  opacity: 0; transform: translateY(.5rem);
+  transition: opacity 1.4s var(--ease), transform 1.6s var(--ease);
+}
+.js body.walk .stop .line { display: inline-block; }
+.js body.walk .stop.is-here h2,
+.js body.walk .stop.is-here time,
+.js body.walk .stop.is-here .line { opacity: 1; transform: none; }
+.js body.walk .stop h2 { color: var(--warm); font-size: 1.05rem; font-style: normal; letter-spacing: .14em; text-transform: uppercase; font-weight: 400; margin-bottom: 1.4rem; }
+.js body.walk .stop.poem .body p { color: #efe7d2; font-size: clamp(1.15rem, 1.7vw, 1.5rem); }
+.js body.walk .stop time { margin-top: 1.4rem; color: rgba(233, 214, 163, .55); transition-delay: var(--last-delay, 3s); }
+
+@media (max-width: 44rem) {
+  .js body.walk .stop {
+    left: max(1.5rem, env(safe-area-inset-left, 0px)) !important;
+    right: max(1.5rem, env(safe-area-inset-right, 0px));
+    top: max(11vh, env(safe-area-inset-top, 0px)) !important;
+    width: auto;
+  }
+  .js body.walk .stop.poem .body p { font-size: 1.2rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .js body.walk .scroll-cue span { animation: none; top: 30%; }
+}
