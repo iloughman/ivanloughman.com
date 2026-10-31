@@ -5,20 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>{{ site.title }}</title>
   <meta name="description" content="{{ site.description }}">
-  <meta name="theme-color" content="#121416">
+  <meta name="theme-color" content="#1d1a15">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..500;1,6..72,300..400&display=swap">
   <link rel="stylesheet" href="{{ '/assets/site.css' | relative_url }}">
   <link rel="stylesheet" href="{{ '/assets/walk.css' | relative_url }}">
-  <script>
-    document.documentElement.classList.add('js');
-    // If the walk script can't run, fall back to the plain page.
-    setTimeout(function () { if (!window.walkReady) document.documentElement.classList.remove('js'); }, 4000);
-  </script>
 </head>
 <body class="walk">
-  <a class="skip" href="#writing">{% if site.posts.size > 0 %}Skip to writing{% else %}Skip to the end of the walk{% endif %}</a>
+  {% if site.posts.size > 0 %}<a class="skip" href="#writing">Skip to writing</a>{% endif %}
   {{ content }}
   <script src="{{ '/assets/walk.js' | relative_url }}" defer></script>
 </body>

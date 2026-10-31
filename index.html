@@ -2,9 +2,10 @@
 layout: walk
 ---
 <div class="scene" aria-hidden="true">
-  <canvas class="world"></canvas>
-  <img class="still" alt="" src="{{ '/assets/forest-1700.jpg' | relative_url }}"
-       data-large="{{ '/assets/forest-2800.jpg' | relative_url }}">
+  <img class="photo" alt=""
+       src="{{ '/assets/forest-1700.jpg' | relative_url }}"
+       srcset="{{ '/assets/forest-1700.jpg' | relative_url }} 1275w, {{ '/assets/forest-2800.jpg' | relative_url }} 2100w"
+       sizes="max(100vw, 75vh)">
   <canvas class="leaves"></canvas>
   <div class="vignette"></div>
 </div>
@@ -12,12 +13,11 @@ layout: walk
 <header class="title-card">
   <h1>Ivan Loughman</h1>
 </header>
-<div class="scroll-cue" aria-hidden="true"><span></span></div>
 
 {%- comment -%}
-  Posts appear at the end of the walk, in the warm light down the path.
-  Without JavaScript they render as a plain, readable page.
+  Any posts sit below the photo as a plain, readable list.
 {%- endcomment -%}
+{%- if site.posts.size > 0 %}
 <section id="writing" class="stops" aria-label="Writing">
   {%- for post in site.posts %}
   <article class="stop{% if post.poem %} poem{% endif %}">
@@ -28,5 +28,4 @@ layout: walk
   </article>
   {%- endfor %}
 </section>
-
-<div class="track" aria-hidden="true"></div>
+{%- endif %}
