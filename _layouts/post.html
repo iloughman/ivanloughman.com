@@ -1,11 +1,14 @@
 ---
 layout: default
 ---
-<a class="back" href="/">← Ivan Loughman</a>
-<article>
+<nav class="crumbs"><a href="{{ '/' | relative_url }}">← Back</a></nav>
+<article class="post{% if page.poem %} poem{% endif %}">
   <header>
     <h1>{{ page.title }}</h1>
+    {% if page.author %}<p class="byline">{{ page.author }}</p>{% endif %}
     <time datetime="{{ page.date | date_to_xmlschema }}">{{ page.date | date: "%B %-d, %Y" }}</time>
   </header>
-  {{ content }}
+  <div class="body">
+    {{ content }}
+  </div>
 </article>

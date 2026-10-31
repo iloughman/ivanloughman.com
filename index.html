@@ -1,18 +1,31 @@
 ---
-layout: default
+layout: walk
 ---
-<h1>Ivan Loughman</h1>
+<div class="scene" aria-hidden="true">
+  <img class="photo" alt=""
+       src="{{ '/assets/forest-1700.jpg' | relative_url }}"
+       srcset="{{ '/assets/forest-1700.jpg' | relative_url }} 1275w, {{ '/assets/forest-2800.jpg' | relative_url }} 2100w"
+       sizes="max(100vw, 75vh)">
+  <canvas class="leaves"></canvas>
+  <div class="vignette"></div>
+</div>
 
-<h2>Writing</h2>
-{% if site.posts.size > 0 %}
-<ul class="posts">
-  {% for post in site.posts %}
-  <li>
-    <time datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date: "%b %-d, %Y" }}</time>
-    <a href="{{ post.url }}">{{ post.title }}</a>
-  </li>
-  {% endfor %}
-</ul>
-{% else %}
-<p class="muted">Nothing here yet — soon.</p>
-{% endif %}
+<header class="title-card">
+  <h1>Ivan Loughman</h1>
+</header>
+
+{%- comment -%}
+  Any posts sit below the photo as a plain, readable list.
+{%- endcomment -%}
+{%- if site.posts.size > 0 %}
+<section id="writing" class="stops" aria-label="Writing">
+  {%- for post in site.posts %}
+  <article class="stop{% if post.poem %} poem{% endif %}">
+    <h2><a href="{{ post.url | relative_url }}">{{ post.title }}</a></h2>
+    <div class="body">{{ post.content }}</div>
+    {% if post.author %}<p class="byline">{{ post.author }}</p>{% endif %}
+    <time datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date: "%B %-d, %Y" }}</time>
+  </article>
+  {%- endfor %}
+</section>
+{%- endif %}

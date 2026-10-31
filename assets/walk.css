@@ -1,0 +1,39 @@
+/* Home page: one still photograph, with leaves falling in front of it. */
+
+body.walk { min-height: 100vh; background: #1d1a15; }
+
+.scene {
+  position: fixed; inset: 0; z-index: 0; overflow: hidden; background: #2b2a22;
+}
+.scene .photo {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; object-position: 57% 56%;
+}
+.scene .leaves { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
+.scene .vignette {
+  position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(130% 100% at 50% 50%, transparent 58%, rgba(12, 10, 8, .4) 100%);
+}
+
+/* the name is for screen readers and search engines; the page itself is just the photo */
+.title-card {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* writing, if any, scrolls up over the photo below the first screen */
+.stops {
+  position: relative; z-index: 2;
+  margin-top: 100vh;
+  padding-block: 4rem 6rem;
+  padding-left: max(1.5rem, env(safe-area-inset-left, 0px));
+  padding-right: max(1.5rem, env(safe-area-inset-right, 0px));
+  background: linear-gradient(rgba(22, 19, 15, 0), rgba(22, 19, 15, .92) 6rem);
+}
+.stop { max-width: 34rem; margin: 0 auto 4rem; }
+.stop h2 { font-weight: 300; font-size: 1.9rem; margin: 0 0 1rem; line-height: 1.15; }
+.stop h2 a { text-decoration: none; }
+.stop .body p { margin: 0 0 1rem; }
+.stop.poem .body p { white-space: pre-line; font-style: italic; font-weight: 300; font-size: 1.3rem; line-height: 1.75; }
+.stop .byline { margin: .5rem 0 0; }
+.stop time { display: block; color: var(--muted); font-size: .9rem; }
